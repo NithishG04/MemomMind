@@ -1,0 +1,285 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.displayName is string && data.displayName.size() <= 120 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.consentAccepted is bool &&
+             data.aiProcessingConsent is bool &&
+             data.defaultLanguage is string && data.defaultLanguage.size() >= 1 && data.defaultLanguage.size() <= 40 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidRecording(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 180 &&
+             data.notes is string && data.notes.size() <= 4000 &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 60 &&
+             data.tags is list && data.tags.size() <= 10 &&
+             (data.tags.size() == 0 || (data.tags[0] is string && data.tags[0].size() <= 40)) &&
+             data.durationMs is int && data.durationMs >= 0 && data.durationMs <= 86400000 &&
+             data.recordedAtMs is int && data.recordedAtMs >= 0 &&
+             data.language is string && data.language.size() <= 40 &&
+             data.transcriptStatus in ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'] &&
+             data.fullTranscript is string && data.fullTranscript.size() <= 50000 &&
+             data.summaryTopics is string && data.summaryTopics.size() <= 4000 &&
+             data.summaryDecisions is string && data.summaryDecisions.size() <= 4000 &&
+             data.summaryTasks is string && data.summaryTasks.size() <= 4000 &&
+             data.summaryLocations is string && data.summaryLocations.size() <= 4000 &&
+             data.summaryFinancials is string && data.summaryFinancials.size() <= 4000 &&
+             data.summaryDates is string && data.summaryDates.size() <= 4000 &&
+             data.localAudioFileName is string && data.localAudioFileName.size() <= 260 &&
+             data.waveformPeaks is list && data.waveformPeaks.size() <= 80 &&
+             (data.waveformPeaks.size() == 0 || data.waveformPeaks[0] is int) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSegment(data, userId, recordingId) {
+      return data.userId is string && data.userId == userId &&
+             data.recordingId is string && data.recordingId == recordingId &&
+             data.startMs is int && data.startMs >= 0 &&
+             data.endMs is int && data.endMs >= data.startMs &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 5000 &&
+             data.speaker is string && data.speaker.size() <= 80 &&
+             data.confidence is number && data.confidence >= 0.0 && data.confidence <= 1.0 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidExtractedInfo(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.recordingId is string && data.recordingId.size() >= 1 && data.recordingId.size() <= 128 &&
+             data.recordingTitle is string && data.recordingTitle.size() <= 180 &&
+             data.segmentId is string && data.segmentId.size() <= 128 &&
+             data.timestampMs is int && data.timestampMs >= 0 &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 40 &&
+             data.label is string && data.label.size() >= 1 && data.label.size() <= 120 &&
+             data.value is string && data.value.size() >= 1 && data.value.size() <= 1000 &&
+             data.verified is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidReminder(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.recordingId is string && data.recordingId.size() <= 128 &&
+             data.recordingTitle is string && data.recordingTitle.size() <= 180 &&
+             data.timestampMs is int && data.timestampMs >= 0 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 300 &&
+             data.dueDateTimeText is string && data.dueDateTimeText.size() >= 1 && data.dueDateTimeText.size() <= 120 &&
+             data.dueTimestampMs is int && data.dueTimestampMs >= 0 &&
+             data.completed is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidMemoryMessage(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.role in ['USER', 'ASSISTANT'] &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 12000 &&
+             data.citedRecordingId is string && data.citedRecordingId.size() <= 128 &&
+             data.citedRecordingTitle is string && data.citedRecordingTitle.size() <= 180 &&
+             data.citedDateText is string && data.citedDateText.size() <= 80 &&
+             data.citedTimestampMs is int && data.citedTimestampMs >= 0 &&
+             data.citedExcerpt is string && data.citedExcerpt.size() <= 2000 &&
+             data.evidenceConfidence is string && data.evidenceConfidence.size() <= 30 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId) && isValidId(userId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'email', 'consentAccepted',
+                         'aiProcessingConsent', 'defaultLanguage', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'email', 'consentAccepted',
+                         'aiProcessingConsent', 'defaultLanguage', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidUserProfile(incoming(), userId);
+
+      allow update: if isOwner(userId) && isValidId(userId) &&
+                       isValidUserProfile(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'email', 'consentAccepted',
+                         'aiProcessingConsent', 'defaultLanguage', 'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /recordings/{recordingId} {
+        allow get: if isOwner(userId) && isValidId(recordingId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(recordingId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'title', 'notes', 'category', 'tags', 'durationMs',
+                           'recordedAtMs', 'language', 'transcriptStatus', 'fullTranscript',
+                           'summaryTopics', 'summaryDecisions', 'summaryTasks', 'summaryLocations',
+                           'summaryFinancials', 'summaryDates', 'localAudioFileName',
+                           'waveformPeaks', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'title', 'notes', 'category', 'tags', 'durationMs',
+                           'recordedAtMs', 'language', 'transcriptStatus', 'fullTranscript',
+                           'summaryTopics', 'summaryDecisions', 'summaryTasks', 'summaryLocations',
+                           'summaryFinancials', 'summaryDates', 'localAudioFileName',
+                           'waveformPeaks', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidRecording(incoming(), userId);
+
+        allow update: if isOwner(userId) && isValidId(recordingId) &&
+                         isValidRecording(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'notes', 'category', 'tags', 'language',
+                           'transcriptStatus', 'fullTranscript', 'summaryTopics',
+                           'summaryDecisions', 'summaryTasks', 'summaryLocations',
+                           'summaryFinancials', 'summaryDates', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(recordingId);
+
+        match /segments/{segmentId} {
+          allow get: if isOwner(userId) && isValidId(recordingId) && isValidId(segmentId);
+          allow list: if isOwner(userId) && isValidId(recordingId);
+
+          allow create: if isOwner(userId) && isValidId(recordingId) && isValidId(segmentId) &&
+                           incoming().keys().hasAll([
+                             'userId', 'recordingId', 'startMs', 'endMs', 'text',
+                             'speaker', 'confidence', 'createdAt', 'updatedAt'
+                           ]) &&
+                           incoming().keys().hasOnly([
+                             'userId', 'recordingId', 'startMs', 'endMs', 'text',
+                             'speaker', 'confidence', 'createdAt', 'updatedAt'
+                           ]) &&
+                           isValidSegment(incoming(), userId, recordingId);
+
+          allow update: if isOwner(userId) && isValidId(recordingId) && isValidId(segmentId) &&
+                           isValidSegment(incoming(), userId, recordingId) &&
+                           incoming().userId == existing().userId &&
+                           incoming().recordingId == existing().recordingId &&
+                           incoming().createdAt == existing().createdAt &&
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'text', 'speaker', 'updatedAt'
+                           ]);
+
+          allow delete: if isOwner(userId) && isValidId(recordingId) && isValidId(segmentId);
+        }
+      }
+
+      match /extractedInfo/{infoId} {
+        allow get: if isOwner(userId) && isValidId(infoId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(infoId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'recordingId', 'recordingTitle', 'segmentId',
+                           'timestampMs', 'category', 'label', 'value', 'verified',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'recordingId', 'recordingTitle', 'segmentId',
+                           'timestampMs', 'category', 'label', 'value', 'verified',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidExtractedInfo(incoming(), userId);
+
+        allow update: if isOwner(userId) && isValidId(infoId) &&
+                         isValidExtractedInfo(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'category', 'label', 'value', 'verified', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(infoId);
+      }
+
+      match /reminders/{reminderId} {
+        allow get: if isOwner(userId) && isValidId(reminderId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(reminderId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'recordingId', 'recordingTitle', 'timestampMs',
+                           'title', 'dueDateTimeText', 'dueTimestampMs', 'completed',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'recordingId', 'recordingTitle', 'timestampMs',
+                           'title', 'dueDateTimeText', 'dueTimestampMs', 'completed',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidReminder(incoming(), userId);
+
+        allow update: if isOwner(userId) && isValidId(reminderId) &&
+                         isValidReminder(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'dueDateTimeText', 'dueTimestampMs', 'completed', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(reminderId);
+      }
+
+      match /memoryMessages/{messageId} {
+        allow get: if isOwner(userId) && isValidId(messageId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(messageId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'role', 'text', 'citedRecordingId',
+                           'citedRecordingTitle', 'citedDateText', 'citedTimestampMs',
+                           'citedExcerpt', 'evidenceConfidence', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'role', 'text', 'citedRecordingId',
+                           'citedRecordingTitle', 'citedDateText', 'citedTimestampMs',
+                           'citedExcerpt', 'evidenceConfidence', 'createdAt'
+                         ]) &&
+                         isValidMemoryMessage(incoming(), userId);
+
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(messageId);
+      }
+    }
+  }
+}

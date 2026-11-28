@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "147980243544",
+    "project_id": "gen-lang-client-0775316894",
+    "storage_bucket": "gen-lang-client-0775316894.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:147980243544:android:1f6b467dcff45b6f58702d",
+        "android_client_info": {
+          "package_name": "com.example.memomind"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "147980243544-4k0c6qnd3r97tjto2irm2qnnkjge4cno.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.memomind",
+            "certificate_hash": "e79373095730d2cba33394513e50216d16a8e5d2"
+          }
+        },
+        {
+          "client_id": "147980243544-nq5hmcth0klihkddulmad2l1eu9tselm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzNvhwSv38SvMz2kYNCv5DfAtaijv_cJo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "147980243544-nq5hmcth0klihkddulmad2l1eu9tselm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

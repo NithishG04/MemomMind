@@ -1,0 +1,6 @@
+{
+  "name": "MemoMind",
+  "description": "AI-powered personal memory and conversation retrieval assistant for recording, transcribing, organizing, and querying daily conversations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

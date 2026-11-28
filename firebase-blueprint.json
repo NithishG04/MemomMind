@@ -1,0 +1,223 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Private MemoMind user profile, consent record, and preferences.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID of the owner." },
+        "displayName": { "type": "string", "description": "User display name." },
+        "email": { "type": "string", "description": "User email address." },
+        "consentAccepted": { "type": "boolean", "description": "Whether microphone and participant consent onboarding was accepted." },
+        "aiProcessingConsent": { "type": "boolean", "description": "Whether user consented to Gemini AI audio and transcript processing." },
+        "defaultLanguage": { "type": "string", "description": "Preferred transcription language hint (e.g., Auto, English, Tamil, Tanglish)." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp (FieldValue.serverTimestamp())." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp (FieldValue.serverTimestamp())." }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "email",
+        "consentAccepted",
+        "aiProcessingConsent",
+        "defaultLanguage",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Recording": {
+      "title": "Recording",
+      "description": "Recorded conversation metadata, summary, and local audio filename reference.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "notes": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array" },
+        "durationMs": { "type": "integer" },
+        "recordedAtMs": { "type": "integer" },
+        "language": { "type": "string" },
+        "transcriptStatus": {
+          "type": "string",
+          "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED"]
+        },
+        "fullTranscript": { "type": "string" },
+        "summaryTopics": { "type": "string" },
+        "summaryDecisions": { "type": "string" },
+        "summaryTasks": { "type": "string" },
+        "summaryLocations": { "type": "string" },
+        "summaryFinancials": { "type": "string" },
+        "summaryDates": { "type": "string" },
+        "localAudioFileName": { "type": "string" },
+        "waveformPeaks": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "title",
+        "notes",
+        "category",
+        "tags",
+        "durationMs",
+        "recordedAtMs",
+        "language",
+        "transcriptStatus",
+        "fullTranscript",
+        "summaryTopics",
+        "summaryDecisions",
+        "summaryTasks",
+        "summaryLocations",
+        "summaryFinancials",
+        "summaryDates",
+        "localAudioFileName",
+        "waveformPeaks",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "TranscriptSegment": {
+      "title": "TranscriptSegment",
+      "description": "Timestamped segment of a conversation transcript linked to the audio file.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "recordingId": { "type": "string" },
+        "startMs": { "type": "integer" },
+        "endMs": { "type": "integer" },
+        "text": { "type": "string" },
+        "speaker": { "type": "string" },
+        "confidence": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "recordingId",
+        "startMs",
+        "endMs",
+        "text",
+        "speaker",
+        "confidence",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ExtractedInfo": {
+      "title": "ExtractedInfo",
+      "description": "Structured detail extracted from a conversation with user verification flag.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "recordingId": { "type": "string" },
+        "recordingTitle": { "type": "string" },
+        "segmentId": { "type": "string" },
+        "timestampMs": { "type": "integer" },
+        "category": { "type": "string" },
+        "label": { "type": "string" },
+        "value": { "type": "string" },
+        "verified": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "recordingId",
+        "recordingTitle",
+        "segmentId",
+        "timestampMs",
+        "category",
+        "label",
+        "value",
+        "verified",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ReminderItem": {
+      "title": "ReminderItem",
+      "description": "User-confirmed reminder extracted or created from a conversation.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "recordingId": { "type": "string" },
+        "recordingTitle": { "type": "string" },
+        "timestampMs": { "type": "integer" },
+        "title": { "type": "string" },
+        "dueDateTimeText": { "type": "string" },
+        "dueTimestampMs": { "type": "integer" },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "recordingId",
+        "recordingTitle",
+        "timestampMs",
+        "title",
+        "dueDateTimeText",
+        "dueTimestampMs",
+        "completed",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MemoryMessage": {
+      "title": "MemoryMessage",
+      "description": "AI Memory Chat message with grounded source reference and timestamp.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["USER", "ASSISTANT"] },
+        "text": { "type": "string" },
+        "citedRecordingId": { "type": "string" },
+        "citedRecordingTitle": { "type": "string" },
+        "citedDateText": { "type": "string" },
+        "citedTimestampMs": { "type": "integer" },
+        "citedExcerpt": { "type": "string" },
+        "evidenceConfidence": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "role",
+        "text",
+        "citedRecordingId",
+        "citedRecordingTitle",
+        "citedDateText",
+        "citedTimestampMs",
+        "citedExcerpt",
+        "evidenceConfidence",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Owner-isolated user profile, consent status, and preferences."
+    },
+    "/users/{userId}/recordings/{recordingId}": {
+      "schema": { "$ref": "#/entities/Recording" },
+      "description": "User's recorded conversations, summaries, and metadata."
+    },
+    "/users/{userId}/recordings/{recordingId}/segments/{segmentId}": {
+      "schema": { "$ref": "#/entities/TranscriptSegment" },
+      "description": "Timestamped transcript segments for a specific recording."
+    },
+    "/users/{userId}/extractedInfo/{infoId}": {
+      "schema": { "$ref": "#/entities/ExtractedInfo" },
+      "description": "Smart extracted entities linked back to recordings and timestamps."
+    },
+    "/users/{userId}/reminders/{reminderId}": {
+      "schema": { "$ref": "#/entities/ReminderItem" },
+      "description": "User-confirmed reminders linked to source conversations."
+    },
+    "/users/{userId}/memoryMessages/{messageId}": {
+      "schema": { "$ref": "#/entities/MemoryMessage" },
+      "description": "AI Memory conversational history with source citations."
+    }
+  }
+}
